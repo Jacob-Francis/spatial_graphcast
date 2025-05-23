@@ -13,8 +13,9 @@ import numpy as np
 # Change path to the directory where the shared library is located
 os.chdir(Path(__file__).parent)
 
+
 # search for the PAD C++ shared library file (PAD_on_sphere_Cyhatyhat_shared_library.so) in the same folder
-libc = ctypes.CDLL("CC_MSE_TORCH.so")
+libc = ctypes.CDLL("./CC_MSE_TORCH.so")
 
 # -----------------------------------------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------
