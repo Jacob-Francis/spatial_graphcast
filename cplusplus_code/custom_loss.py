@@ -2,7 +2,7 @@
 import torch
 from torch.autograd import Function
 import numpy as np
-
+import os
 import ctypes
 from ctypes import *
 from pathlib import Path
@@ -10,8 +10,11 @@ from pathlib import Path
 import torch
 import numpy as np
 
+# Change path to the directory where the shared library is located
+os.chdir(Path(__file__).parent)
+
 # search for the PAD C++ shared library file (PAD_on_sphere_Cyhatyhat_shared_library.so) in the same folder
-libc = ctypes.CDLL("/home/jacob/spatial_ml_losses/cplusplus_code/CC_MSE_TORCH.so")
+libc = ctypes.CDLL("CC_MSE_TORCH.so")
 
 # -----------------------------------------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------
