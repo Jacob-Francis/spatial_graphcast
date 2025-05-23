@@ -1,7 +1,6 @@
 // Compile command for a linux system
 // g++ -fopenmp -O2 -Wall -Wno-unused-result -Wno-unknown-pragmas -shared -o CC_MSE_python_lib.so -fPIC CC_MSE_python_lib.cc
-// g++ -std=c++17 -fopenmp -O2 -Wall -Wno-unused-result -Wno-unknown-pragmas -shared -fPIC \
-  -o CC_MSE_LOWERING.so CC_MSE_LOWERING.cc
+// g++ -std=c++17 -fopenmp -O2 -Wall -Wno-unused-result -Wno-unknown-pragmas -shared -fPIC -o CC_MSE_TORCH.so CC_MSE_TORCH.cc
 
 #include <iostream>
 
