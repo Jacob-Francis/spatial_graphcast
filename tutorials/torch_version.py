@@ -155,6 +155,7 @@ loss.backward()
 # # Inspect gradients
 print("true x.grad:", x.grad)
 print("true w.grad:", w.grad)
+print("Loss:", loss.item())
 
 
 import torch
@@ -215,10 +216,16 @@ y = x * w
 # compute loss using custom function
 loss = CustomMSE.apply(y, target, area_size)
 
-print("Loss:", loss.item())
 
 # backward pass
 loss.backward()
 
 print("x.grad:", x.grad)
 print("w.grad:", w.grad)
+print("Loss:", loss.item())
+
+
+### Required shapes for Uroc's model;
+# torch.Size([5, 84, 60, 120]) torch.Size([5, 84, 60, 120])
+# torch.float32 torch.float32
+# tensor(0.1004, device='cuda:0', grad_fn=<MulBackwar

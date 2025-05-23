@@ -9,15 +9,15 @@
 using namespace std;
 
 extern "C"  void calculate_MSE_ctypes(
-    const float * const values1,
-    const float * const values2,
-    const float * const area_size,
+    const double * const values1,
+    const double * const values2,
+    const double * const area_size,
     const size_t number_of_points,
-    float * const MSE_value
+    double * const MSE_value
     )
 	{
-	float MSE_sum=0;
-	float area_size_sum=0;
+	double MSE_sum=0;
+	double area_size_sum=0;
 
 	for (size_t il=0; il < number_of_points; il++)
 		{
@@ -29,13 +29,13 @@ extern "C"  void calculate_MSE_ctypes(
 	}
 
 extern "C" void calculate_MSE_gradient_ctypes(
-    const float* const values1,
-    const float* const values2,
-    const float* const area_size,
+    const double* const values1,
+    const double* const values2,
+    const double* const area_size,
     const size_t number_of_points,
-    float* const MSE_gradient)
+    double* const MSE_gradient)
 {
-    float area_size_sum = 0.0f;
+    double area_size_sum = 0.0;
 
     // First compute area_size_sum
     for (size_t il = 0; il < number_of_points; il++)
@@ -46,7 +46,7 @@ extern "C" void calculate_MSE_gradient_ctypes(
     // Then compute gradient values
     for (size_t il = 0; il < number_of_points; il++)
     {
-        MSE_gradient[il] = -area_size[il] * 2.0f * (values1[il] - values2[il]) / area_size_sum;
+        MSE_gradient[il] = -area_size[il] * 2.0 * (values1[il] - values2[il]) / area_size_sum;
     }
 }
 
@@ -70,10 +70,10 @@ std::pair<int64_t, int64_t> GetDims(const ffi::Buffer<T> &buffer) {
   return std::make_pair(buffer.element_count(), dims.back());
 }
 
-ffi::Error MseGradImpl(ffi::Buffer<ffi::F32> values1,
-                   ffi::Buffer<ffi::F32> values2,
-                   ffi::Buffer<ffi::F32> area_size,
-                   ffi::ResultBuffer<ffi::F32> MSE_gradient) {
+ffi::Error MseGradImpl(ffi::Buffer<ffi::F64> values1,
+                   ffi::Buffer<ffi::F64> values2,
+                   ffi::Buffer<ffi::F64> area_size,
+                   ffi::ResultBuffer<ffi::F64> MSE_gradient) {
   auto [totalSize, lastDim] = GetDims(values1);
 
   if (lastDim == 0) {
@@ -104,17 +104,17 @@ ffi::Error MseGradImpl(ffi::Buffer<ffi::F32> values1,
 XLA_FFI_DEFINE_HANDLER_SYMBOL(
     MseGrad, MseGradImpl,
     ffi::Ffi::Bind()
-        .Arg<ffi::Buffer<ffi::F32>>()  // values1
-        .Arg<ffi::Buffer<ffi::F32>>()  // values2
-        .Arg<ffi::Buffer<ffi::F32>>()  // area_size
-        .Ret<ffi::Buffer<ffi::F32>>()  // mse_value (one value per batch)
+        .Arg<ffi::Buffer<ffi::F64>>()  // values1
+        .Arg<ffi::Buffer<ffi::F64>>()  // values2
+        .Arg<ffi::Buffer<ffi::F64>>()  // area_size
+        .Ret<ffi::Buffer<ffi::F64>>()  // mse_value (one value per batch)
 );
 
 
-ffi::Error MseImpl(ffi::Buffer<ffi::F32> values1,
-                   ffi::Buffer<ffi::F32> values2,
-                   ffi::Buffer<ffi::F32> area_size,
-                   ffi::ResultBuffer<ffi::F32> mse_value) {
+ffi::Error MseImpl(ffi::Buffer<ffi::F64> values1,
+                   ffi::Buffer<ffi::F64> values2,
+                   ffi::Buffer<ffi::F64> area_size,
+                   ffi::ResultBuffer<ffi::F64> mse_value) {
   auto [totalSize, lastDim] = GetDims(values1);
 
   if (lastDim == 0) {
@@ -127,7 +127,7 @@ ffi::Error MseImpl(ffi::Buffer<ffi::F32> values1,
   }
 
   for (int n = 0; n < totalSize; n += lastDim) {
-    float mse_scalar = 0.0f;
+    double mse_scalar = 0.0;
 
     calculate_MSE_ctypes(
       &(values1.typed_data()[n]), 
@@ -147,8 +147,8 @@ ffi::Error MseImpl(ffi::Buffer<ffi::F32> values1,
 XLA_FFI_DEFINE_HANDLER_SYMBOL(
     Mse, MseImpl,
     ffi::Ffi::Bind()
-        .Arg<ffi::Buffer<ffi::F32>>()  // values1
-        .Arg<ffi::Buffer<ffi::F32>>()  // values2
-        .Arg<ffi::Buffer<ffi::F32>>()  // area_size
-        .Ret<ffi::Buffer<ffi::F32>>()  // mse_value (one value per batch)
+        .Arg<ffi::Buffer<ffi::F64>>()  // values1
+        .Arg<ffi::Buffer<ffi::F64>>()  // values2
+        .Arg<ffi::Buffer<ffi::F64>>()  // area_size
+        .Ret<ffi::Buffer<ffi::F64>>()  // mse_value (one value per batch)
 );
