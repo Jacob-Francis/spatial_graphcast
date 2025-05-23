@@ -1,1 +1,1 @@
-from .custom_loss.py import CustomMSE
+from .custom_loss import CustomMSE
