@@ -172,55 +172,47 @@ params_file_options = [
     name for blob in gcs_bucket.list_blobs(prefix=dir_prefix+"params/")
     if (name := blob.name.removeprefix(dir_prefix+"params/"))]  # Drop empty string.
 
-random_mesh_size = widgets.IntSlider(
-    value=4, min=4, max=6, description="Mesh size:")
-random_gnn_msg_steps = widgets.IntSlider(
-    value=4, min=1, max=32, description="GNN message steps:")
-random_latent_size = widgets.Dropdown(
-    options=[int(2**i) for i in range(4, 10)], value=32,description="Latent size:")
-random_levels = widgets.Dropdown(
-    options=[13, 37], value=13, description="Pressure levels:")
+
+source = 'Random'
+if source == "Random":
+  params = None  # Filled in below
+  state = {}
+  model_config = graphcast.ModelConfig(
+      resolution=0,
+      mesh_size=4,
+      latent_size=16,
+      gnn_msg_steps=1,
+      hidden_layers=1,
+      radius_query_fraction_edge_length=0.6)
+  task_config = graphcast.TaskConfig(
+      input_variables=graphcast.TASK.input_variables,
+      target_variables=graphcast.TASK.target_variables,
+      forcing_variables=graphcast.TASK.forcing_variables,
+      pressure_levels=graphcast.PRESSURE_LEVELS[13],
+      input_duration=graphcast.TASK.input_duration,
+  )
+else:
+  params_file_options = [
+      'GraphCast - ERA5 1979-2017 - resolution 0.25 - pressure levels 37 - mesh 2to6 - precipitation input and output.npz',
+      'GraphCast_operational - ERA5-HRES 1979-2021 - resolution 0.25 - pressure levels 13 - mesh 2to6 - precipitation output only.npz',
+      'GraphCast_small - ERA5 1979-2015 - resolution 1.0 - pressure levels 13 - mesh 2to5 - precipitation input and output.npz'
+      ]  # Drop empty string.
+
+  # JF: Guess we should start with the pre-trained model and see if we can use it ourselves to gather 
+  # precipation data ina  coherent way before editing loss functions etc. 
+  with gcs_bucket.blob(f"{dir_prefix}params/{params_file_options[-1]}").open("rb") as f:
+      ckpt = checkpoint.load(f, graphcast.CheckPoint)
+  params = ckpt.params
+  state = {}
+
+  model_config = ckpt.model_config
+  task_config = ckpt.task_config
+
+  print("Model description:\n", ckpt.description, "\n")
+  print("Model license:\n", ckpt.license, "\n")
 
 
-params_file = widgets.Dropdown(
-    options=params_file_options,
-    description="Params file:",
-    layout={"width": "max-content"})
-
-source_tab = widgets.Tab([
-    widgets.VBox([
-        random_mesh_size,
-        random_gnn_msg_steps,
-        random_latent_size,
-        random_levels,
-    ]),
-    params_file,
-])
-source_tab.set_title(0, "Random")
-source_tab.set_title(1, "Checkpoint")
-widgets.VBox([
-    source_tab,
-    widgets.Label(value="Run the next cell to load the model. Rerunning this cell clears your selection.")
-])  
-
-params_file_options = [
-    'GraphCast - ERA5 1979-2017 - resolution 0.25 - pressure levels 37 - mesh 2to6 - precipitation input and output.npz',
-    'GraphCast_operational - ERA5-HRES 1979-2021 - resolution 0.25 - pressure levels 13 - mesh 2to6 - precipitation output only.npz',
-    'GraphCast_small - ERA5 1979-2015 - resolution 1.0 - pressure levels 13 - mesh 2to5 - precipitation input and output.npz'
-    ]  # Drop empty string.
-
-# JF: Guess we should start with the pre-trained model and see if we can use it ourselves to gather 
-# precipation data ina  coherent way before editing loss functions etc. 
-with gcs_bucket.blob(f"{dir_prefix}params/{params_file_options[-1]}").open("rb") as f:
-    ckpt = checkpoint.load(f, graphcast.CheckPoint)
-params = ckpt.params
-state = {}
-
-model_config = ckpt.model_config
-task_config = ckpt.task_config
-
-print("Model description:\n", ckpt.description, "\n")
-print("Model license:\n", ckpt.license, "\n")
+print(model_config)
 
 # LOAD IN RELEVENT DATA
 """
@@ -271,23 +263,21 @@ options=[
 
 # @title Load weather data
 
-if not data_valid_for_model(options[1][1], model_config, task_config):
+if not data_valid_for_model(options[0][1], model_config, task_config):
   raise ValueError(
       "Invalid dataset file, rerun the cell above and choose a valid dataset file.")
 
-with gcs_bucket.blob(f"{dir_prefix}dataset/{options[1][1]}").open("rb") as f:
+with gcs_bucket.blob(f"{dir_prefix}dataset/{options[0][1]}").open("rb") as f:
   example_batch = xarray.load_dataset(f).compute()
 
 assert example_batch.dims["time"] >= 3  # 2 for input, >=1 for targets
 
-print(", ".join([f"{k}: {v}" for k, v in parse_file_parts(options[1][1].removesuffix(".nc")).items()]))
+print(", ".join([f"{k}: {v}" for k, v in parse_file_parts(options[0][1].removesuffix(".nc")).items()]))
 
 example_batch
 
-assert(0)
 
-
-train_eval_split = [4,4]
+train_eval_split = [1,1]
 # @title Extract training and eval data
 
 train_inputs, train_targets, train_forcings = data_utils.extract_inputs_targets_forcings(
@@ -305,6 +295,10 @@ print("Train Forcings:", train_forcings.dims.mapping)
 print("Eval Inputs:   ", eval_inputs.dims.mapping)
 print("Eval Targets:  ", eval_targets.dims.mapping)
 print("Eval Forcings: ", eval_forcings.dims.mapping)
+
+print(train_inputs == eval_inputs)
+print(train_targets == eval_targets)
+print(train_forcings == eval_forcings)
 
 # @title Load normalization data
 
@@ -355,15 +349,20 @@ def loss_fn(model_config, task_config, inputs, targets, forcings):
       lambda x: xarray_jax.unwrap_data(x.mean(), require_jax=True),
       (loss, diagnostics))
 
-def grads_fn(params, state, model_config, task_config, inputs, targets, forcings):
-  def _aux(params, state, i, t, f):
-    (loss, diagnostics), next_state = loss_fn.apply(
-        params, state, jax.random.PRNGKey(0), model_config, task_config,
-        i, t, f)
-    return loss, (diagnostics, next_state)
-  (loss, (diagnostics, next_state)), grads = jax.value_and_grad(
-      _aux, has_aux=True)(params, state, inputs, targets, forcings)
-  return loss, diagnostics, next_state, grads
+def grads_fn(params, hk_state, model_config, task_config, inputs, targets, forcings):
+    def _aux(params, hk_state, i, t, f):
+        (loss, diagnostics), next_hk_state = loss_fn.apply(
+            params, hk_state, jax.random.PRNGKey(0), model_config, task_config,
+            i, t, f
+        )
+        return loss, (diagnostics, next_hk_state)
+
+    (loss, (diagnostics, next_hk_state)), grads = jax.value_and_grad(
+        _aux, has_aux=True
+    )(params, hk_state, inputs, targets, forcings)
+
+    return loss, diagnostics, next_hk_state, grads
+
 
 # Jax doesn't seem to like passing configs as args through the jit. Passing it
 # in via partial (instead of capture by closure) forces jax to invalidate the
@@ -381,15 +380,15 @@ def with_params(fn):
 def drop_state(fn):
   return lambda **kw: fn(**kw)[0]
 
+# Initialize params and hk_state from model
 init_jitted = jax.jit(with_configs(run_forward.init))
-
 if params is None:
-  params, state = init_jitted(
-      rng=jax.random.PRNGKey(0),
-      inputs=train_inputs,
-      targets_template=train_targets,
-      forcings=train_forcings)
-
+    params, hk_state = init_jitted(
+        rng=jax.random.PRNGKey(0),
+        inputs=train_inputs,
+        targets_template=train_targets,
+        forcings=train_forcings
+    )
 loss_fn_jitted = drop_state(with_params(jax.jit(with_configs(loss_fn.apply))))
 grads_fn_jitted = with_params(jax.jit(with_configs(grads_fn)))
 run_forward_jitted = drop_state(with_params(jax.jit(with_configs(
@@ -403,36 +402,62 @@ The following operations require a large amount of memory and, depending on the 
 
 The first time executing the cell takes more time, as it include the time to jit the function.
 """
+from typing import NamedTuple
+import optax
+# Define optimizer first so it's available to TrainState
 
-# @title Loss computation (autoregressive loss over multiple steps)
-loss, diagnostics = loss_fn_jitted(
-    rng=jax.random.PRNGKey(0),
-    inputs=train_inputs,
-    targets=train_targets,
-    forcings=train_forcings)
-print("Loss:", float(loss))
 
-# @title Gradient computation (backprop through time)
-loss, diagnostics, next_state, grads = grads_fn_jitted(
-    inputs=train_inputs,
-    targets=train_targets,
-    forcings=train_forcings)
-mean_grad = np.mean(jax.tree_util.tree_flatten(jax.tree_util.tree_map(lambda x: np.abs(x).mean(), grads))[0])
-print(f"Loss: {loss:.4f}, Mean |grad|: {mean_grad:.6f}")
+learning_rate = 1e-1
+optimizer = optax.adam(learning_rate)
 
-# @title Autoregressive rollout (keep the loop in JAX)
-print("Inputs:  ", train_inputs.dims.mapping)
-print("Targets: ", train_targets.dims.mapping)
-print("Forcings:", train_forcings.dims.mapping)
+class TrainState(NamedTuple):
+    params: hk.Params
+    hk_state: hk.State
+    opt_state: optax.OptState
+    optimizer: optax.GradientTransformation
 
-predictions = run_forward_jitted(
-    rng=jax.random.PRNGKey(0),
-    inputs=train_inputs,
-    targets_template=train_targets * np.nan,
-    forcings=train_forcings)
+    def apply_gradients(self, grads, new_hk_state):
+        updates, new_opt_state = self.optimizer.update(grads, self.opt_state)
+        new_params = optax.apply_updates(self.params, updates)
+        return TrainState(params=new_params, hk_state=new_hk_state, opt_state=new_opt_state, optimizer=self.optimizer)
 
-predictions
+# Initialize optax optimizer
 
+# opt_state = optimizer.init(params)
+
+
+# Create initial TrainState
+state = TrainState(params=params, hk_state=hk_state, opt_state=optimizer.init(params), optimizer=optimizer)
+
+# Training loop
+key = jax.random.PRNGKey(0)
+for step in range(5):
+    key, subkey1, subkey2 = jax.random.split(key, 3)
+
+    # Compute gradients and new hk_state
+    loss, diagnostics, new_hk_state, grads = grads_fn(
+        state.params, state.hk_state, model_config, task_config,
+        train_inputs, train_targets, train_forcings
+    )
+
+    mean_grad = np.mean(jax.tree_util.tree_flatten(
+        jax.tree_util.tree_map(lambda x: np.abs(x).mean(), grads)
+    )[0])
+
+    print(f"Step {step}: Loss: {loss:.6f}, Mean |grad|: {mean_grad:.6f}")
+
+    # Apply gradients
+    state = state.apply_gradients(grads, new_hk_state)
+
+    # # Forward pass for predictions
+    # predictions = run_forward.apply(
+    #     state.params, state.hk_state, subkey2, model_config, task_config,
+    #     train_inputs, train_targets * np.nan, train_forcings
+    # )[0]
+
+print("Training complete.")
+
+print(f"Loss: {loss:.6f}, Mean |grad|: {mean_grad:.6f}")
 assert(0)
 
 """# Run the model
