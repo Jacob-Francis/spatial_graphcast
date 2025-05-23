@@ -89,9 +89,11 @@ def calculate_MSE_gradient(values1, values2, area_size):
 
 class CustomMSE(Function):
     @staticmethod
-    def forward(ctx, y, target, area_size):
+    def forward(ctx, y, target, area_size=None):
         B = y.shape[0]
 
+        if area_size is None:
+            area_size = torch.ones_like(y)
         assert y.shape == target.shape
         assert y.shape == area_size.shape
 
@@ -114,6 +116,9 @@ class CustomMSE(Function):
         y, target, area_size = ctx.saved_tensors
         B = y.shape[0]
 
+        if area_size is None:
+            area_size = torch.ones_like(y)
+
         # Call your C++ gradient function
         grad_np = calculate_MSE_gradient(
             y.detach().view(B, -1, ).cpu().numpy().astype(np.float64),
@@ -130,6 +135,7 @@ class CustomMSE(Function):
         # y, target, area_size. Usually target and area_size are constants.
         return grad_y.view(y.shape), None, None
 
+# ToDo: I don't think the area elements are actually doing anything....
 
 if __name__ == "__main__":
     # ------------------------ TEST CASE -----------------------
