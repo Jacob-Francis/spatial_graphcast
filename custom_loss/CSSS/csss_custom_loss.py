@@ -10,7 +10,7 @@ from pathlib import Path
 import torch
 import numpy as np
 
-from PY_CSSS_library  import *
+from .PY_CSSS_library  import *
 
 from torch.autograd import Function
 import torch
@@ -18,9 +18,14 @@ import numpy as np
 
 class CustomCSSS(Function):
     @staticmethod
-    def load_binary_file():
-        smoothing_data_folder = bytes("smoothing_data/", encoding='utf8')
-        return read_smoothing_data_from_binary_file(smoothing_data_folder, 500*1000, 65160)
+    def load_binary_file(path_to_smoothing_data):
+        smoothing_data_folder = bytes(path_to_smoothing_data, encoding='utf8')
+        return read_smoothing_data_from_binary_file(smoothing_data_folder, 500*1000, 7260)
+
+    @staticmethod
+    def load_area_size(path_to_area_size_data):
+        
+        return np.load(path_to_area_size_data, allow_pickle=True).astype(np.float64)
 
     @staticmethod
     def forward(ctx, y, target, area_size, binary_file):
@@ -31,7 +36,7 @@ class CustomCSSS(Function):
 
         y_np = y.detach().view(B, -1).cpu().numpy().astype(np.float64)
         target_np = target.detach().view(B, -1).cpu().numpy().astype(np.float64)
-        area_np = area_size.detach().view(B, -1).cpu().numpy().astype(np.float64)
+        area_np = area_size.astype(np.float64)
 
         # Compute loss and gradient in one call
         loss_val, grad_np = batch_calculate_CSSS2_value_with_gradient(y_np, target_np, area_np, binary_file)

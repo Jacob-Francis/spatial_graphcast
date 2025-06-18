@@ -52,8 +52,7 @@ values1 = np.ascontiguousarray(values1, dtype = np.float64)
 values2 = np.ascontiguousarray(values2, dtype = np.float64)
 area_size = np.ascontiguousarray(area_size, dtype = np.float64)
 
-print('Shapes', lon.shape, lat.shape, values1.shape, values2.shape, area_size.shape)
-assert 0
+
 # ------------------------------------------------------------------------------------------------------------------------
 # Generate the smoothing data for smoothing kernel radiuses of 100 and 200 km and write it to the disk
 # ------------------------------------------------------------------------------------------------------------------------
@@ -70,7 +69,6 @@ os.makedirs(smoothing_data_folder, exist_ok = True)
 
 # Generate the smoothing data and write it to the disk
 generate_smoothing_data_for_the_overlap_detection_based_approach_and_write_it_to_the_disk(lat, lon, smoothing_kernel_radius_in_metres, smoothing_data_folder)
-
 # ------------------------------------------------------------------------------------------------------------------------
 # Use the smoothing data to calculate the smoothed field for the 500 km smoothing kernel radius
 # ------------------------------------------------------------------------------------------------------------------------

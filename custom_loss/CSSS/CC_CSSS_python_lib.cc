@@ -833,7 +833,7 @@ extern "C" void batch_calculate_css2_val_and_grad(
         calculate_CSSS2_value_with_gradient(
             &f1[n],
             &f2[n],
-            &area_size[n],
+            area_size,
             lastDim,
             data_pointer,
             &BATCH_CSSS_value[i],
