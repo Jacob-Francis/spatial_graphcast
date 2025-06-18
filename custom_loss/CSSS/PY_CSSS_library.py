@@ -191,7 +191,7 @@ ND_POINTER_2D = np.ctypeslib.ndpointer(dtype=np.float64, ndim=2, flags="C")
 
 
 libc.batch_calculate_css2_val_and_grad.argtypes = [
-    ND_POINTER_1D,
+    ND_POINTER_2D,
     ND_POINTER_2D,
     ND_POINTER_2D,
     ctypes.POINTER(ctypes.c_int64),  # dimensions pointer
