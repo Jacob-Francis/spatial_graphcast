@@ -215,8 +215,12 @@ def batch_calculate_CSSS2_value_with_gradient(
     dims = values1.shape
 
 	# Convert to a ctypes array
-    DimsArrayType = ctypes.c_long * len(dims)
+    DimsArrayType = ctypes.c_int64 * len(dims)
     dims_ctypes = DimsArrayType(*dims)
+    
+    assert area_size.flags['C_CONTIGUOUS']
+    assert values1.flags['C_CONTIGUOUS']
+    assert values2.flags['C_CONTIGUOUS']
 
     libc.batch_calculate_css2_val_and_grad(
         area_size,

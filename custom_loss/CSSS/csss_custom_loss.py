@@ -20,7 +20,7 @@ class CustomCSSS(Function):
     @staticmethod
     def load_binary_file(path_to_smoothing_data):
         smoothing_data_folder = bytes(path_to_smoothing_data, encoding='utf8')
-        return read_smoothing_data_from_binary_file(smoothing_data_folder, 500*1000, 7260)
+        return read_smoothing_data_from_binary_file(smoothing_data_folder, 500*1000, 7200)
 
     @staticmethod
     def load_area_size(path_to_area_size_data):
@@ -42,14 +42,13 @@ class CustomCSSS(Function):
         loss_val, grad_np = batch_calculate_CSSS2_value_with_gradient(y_np, target_np, area_np, binary_file)
         # Stash computed gradient for use in backward
         ctx.grad_y = torch.from_numpy(grad_np).to(y.device).to(y.dtype).view(y.shape)
-        ctx.save_for_backward(y, target, area_size)
+        ctx.save_for_backward(y, target)
 
         return torch.tensor(loss_val, device=y.device, dtype=y.dtype).mean()
 
     @staticmethod
     def backward(ctx, grad_output):
-        y, target, area_size = ctx.saved_tensors
-
+        y, target = ctx.saved_tensors
         # Retrieve stashed gradient
         grad_y = ctx.grad_y
 
