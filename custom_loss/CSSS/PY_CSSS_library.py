@@ -149,6 +149,13 @@ def smooth_field_using_overlap_detection(area_size, f, smoothing_data_pointer):
 # -----------------------------------------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------
 
+# const double * const area_size,
+# const double * const f1,
+# const double * const f2,
+# const size_t number_of_points,
+# const uint32_t * const * const data_pointer,
+# double * const CSSS_value,
+# double * const CSSS_gradient
 
 libc.calculate_CSSS2_value_with_gradient_ctypes.argtypes = [
     ND_POINTER_1D,
@@ -181,6 +188,8 @@ def calculate_CSSS2_value_with_gradient(
 
     CSSS_value = c_CSSS_value.value
 
+    print(CSSS_gradient)
+
     return [CSSS_value, CSSS_gradient]
 
 
@@ -208,29 +217,39 @@ def batch_calculate_CSSS2_value_with_gradient(
 ):
 
     batch_c_CSSS_value = np.ascontiguousarray(
-        np.zeros(values1.shape[0]), dtype=np.float64
+        np.zeros(values1.shape[1]), dtype=np.float64
     )
 
     BATCH_CSSS_gradient = np.ascontiguousarray(np.zeros_like(values1), dtype=np.float64)
     dims = values1.shape
 
-	# Convert to a ctypes array
+    # Convert to a ctypes array
     DimsArrayType = ctypes.c_int64 * len(dims)
     dims_ctypes = DimsArrayType(*dims)
-    
-    assert area_size.flags['C_CONTIGUOUS']
-    assert values1.flags['C_CONTIGUOUS']
-    assert values2.flags['C_CONTIGUOUS']
 
-    libc.batch_calculate_css2_val_and_grad(
-        area_size,
-        values1,
-        values2,
-        dims_ctypes,
-        len(values1.shape),
-        smoothing_data_pointer,
-        batch_c_CSSS_value,
-        BATCH_CSSS_gradient,
-    )
+    assert area_size.flags["C_CONTIGUOUS"]
+    assert values1.flags["C_CONTIGUOUS"]
+    assert values2.flags["C_CONTIGUOUS"]
+
+    for k in range(dims[-1]):
+        [batch_c_CSSS_value[k], BATCH_CSSS_gradient[:, k]] = (
+            calculate_CSSS2_value_with_gradient(
+                np.ascontiguousarray(values1[:, k]),
+                np.ascontiguousarray(values2[:, k]),
+                np.ascontiguousarray(area_size[:, k]),
+                smoothing_data_pointer,
+            )
+        )
+
+    # libc.batch_calculate_css2_val_and_grad(
+    #     area_size,
+    #     values1,
+    #     values2,
+    #     dims_ctypes,
+    #     len(values1.shape),
+    #     smoothing_data_pointer,
+    #     batch_c_CSSS_value,
+    #     BATCH_CSSS_gradient,
+    # )
 
     return [batch_c_CSSS_value, BATCH_CSSS_gradient]
