@@ -167,7 +167,7 @@ barea_size = np.tile(area_size[:, np.newaxis], (1, 5))
 
 print('Shape', bvalues1.shape, bvalues2.shape, area_size.shape)
 
-[bCSSS_value, bCSSS_gradient] = batch_calculate_CSSS2_value_with_gradient(bvalues1, bvalues2, barea_size, smoothing_data_pointer)
+[bCSSS_value, bCSSS_gradient] = batch_calculate_CSSS2_value_with_gradient(bvalues1, bvalues2, area_size, smoothing_data_pointer)
 
 print(bCSSS_value.shape, bCSSS_gradient.shape)
 print('Batched CSSS values', bCSSS_value)
