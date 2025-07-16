@@ -23,7 +23,7 @@ lon_shape = 65160
 
 from netCDF4 import Dataset
 
-nc_file_id = Dataset("/home/jjf817/macomp001/jjf817/csss_graidents/PY_CSSS_example_field1.nc", 'r') 
+nc_file_id = Dataset("/home/jacob/spatial_ml_losses/PY_CSSS_example_field1.nc", 'r') 
 
 lon_netcdf = nc_file_id.variables["lon"][:].data
 lat_netcdf = nc_file_id.variables["lat"][:].data
@@ -31,7 +31,7 @@ f1_netcdf = nc_file_id.variables["precipitation"][:].data
 f1_netcdf[f1_netcdf < 0] = 0
 nc_file_id.close()
 
-nc_file_id = Dataset("/home/jjf817/macomp001/jjf817/csss_graidents/PY_CSSS_example_field2.nc", 'r') 
+nc_file_id = Dataset("/home/jacob/spatial_ml_losses/PY_CSSS_example_field2.nc", 'r') 
 f2_netcdf = nc_file_id.variables["precipitation"][:].data
 f2_netcdf[f2_netcdf < 0] = 0
 nc_file_id.close()
@@ -41,8 +41,6 @@ values1 =np.reshape(f1_netcdf,(-1))
 values2 =np.reshape(f2_netcdf,(-1))
 lon = np.tile(lon_netcdf,f1_netcdf.shape[0])
 lat = np.repeat(lat_netcdf,f1_netcdf.shape[1])
-
-assert 0
 
 # ------------------------------------------------------------------------------------------------------------------------
 # Calculate area size data
@@ -74,7 +72,8 @@ y_c = x * w
 target_c = target.view(1, 1, lat_shape, lon_shape).repeat(batch_size, levels, 1, 1)
 
 # loss_func  = CustomCSSS
-binary_file = CustomCSSS.load_binary_file()
+binary_file = CustomCSSS.load_binary_file('/home/jacob/spatial_ml_losses/custom_loss/CSSS/smoothing_data')
+assert 0
 
 # compute loss using custom function
 # loss = loss_func.apply(y_c.view, target_c, area_size_expanded, binary_file)
