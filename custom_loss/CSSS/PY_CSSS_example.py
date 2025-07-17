@@ -161,9 +161,9 @@ values2_smoothed = smooth_field_using_overlap_detection(area_size, values2, smoo
 # -----------------------------------------------------------
 print(values1.shape)
 
-bvalues1 = np.tile(values1[:, np.newaxis], (1, 5))
-bvalues2 = np.tile(values2[:, np.newaxis], (1, 5))
-barea_size = np.tile(area_size[:, np.newaxis], (1, 5))
+bvalues1 = np.tile(values1[np.newaxis, :], (5, 1))
+bvalues2 = np.tile(values2[np.newaxis, :], (5, 1))
+barea_size = np.tile(area_size[np.newaxis, :], (5, 1))
 
 print('Shape', bvalues1.shape, bvalues2.shape, area_size.shape)
 
@@ -172,7 +172,7 @@ print('Shape', bvalues1.shape, bvalues2.shape, area_size.shape)
 print(bCSSS_value.shape, bCSSS_gradient.shape)
 print('Batched CSSS values', bCSSS_value)
 
-# assert 0 
+assert 0 
 
 # free the smoothing data memory
 free_smoothing_data_memory(smoothing_data_pointer, len(lat))
