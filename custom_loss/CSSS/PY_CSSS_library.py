@@ -219,7 +219,7 @@ def batch_calculate_CSSS2_value_with_gradient(
 ):
 
     batch_c_CSSS_value = np.ascontiguousarray(
-        np.zeros(values1.shape[1]), dtype=np.float64
+        np.zeros(values1.shape[0]), dtype=np.float64
     )
 
     BATCH_CSSS_gradient = np.ascontiguousarray(np.zeros_like(values1), dtype=np.float64)
@@ -233,11 +233,11 @@ def batch_calculate_CSSS2_value_with_gradient(
     assert values1.flags["C_CONTIGUOUS"]
     assert values2.flags["C_CONTIGUOUS"]
 
-    for k in range(dims[-1]):
-        [batch_c_CSSS_value[k], BATCH_CSSS_gradient[:, k]] = (
+    for k in range(dims[0]):
+        [batch_c_CSSS_value[k], BATCH_CSSS_gradient[k, :]] = (
             calculate_CSSS2_value_with_gradient(
-                np.ascontiguousarray(values1[:, k]),
-                np.ascontiguousarray(values2[:, k]),
+                np.ascontiguousarray(values1[k, :]),
+                np.ascontiguousarray(values2[k, :]),
                 area_size,
                 smoothing_data_pointer,
             )
