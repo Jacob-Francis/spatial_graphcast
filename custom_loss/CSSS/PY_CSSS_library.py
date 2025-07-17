@@ -165,12 +165,15 @@ libc.calculate_CSSS2_value_with_gradient_ctypes.argtypes = [
     ctypes.c_void_p,
     POINTER(c_double),
     ND_POINTER_1D,
+    ctypes.c_uint8
+
 ]
+
 libc.calculate_CSSS2_value_with_gradient_ctypes.restype = None
 
 
 def calculate_CSSS2_value_with_gradient(
-    values1, values2, area_size, smoothing_data_pointer
+    values1, values2, area_size, smoothing_data_pointer, print_timing=0
 ):
 
     CSSS_gradient = np.ascontiguousarray(np.zeros(len(values1), dtype=np.float64))
@@ -184,11 +187,10 @@ def calculate_CSSS2_value_with_gradient(
         smoothing_data_pointer,
         byref(c_CSSS_value),
         CSSS_gradient,
+        ctypes.c_uint8(print_timing)
     )
 
     CSSS_value = c_CSSS_value.value
-
-    print(CSSS_gradient)
 
     return [CSSS_value, CSSS_gradient]
 

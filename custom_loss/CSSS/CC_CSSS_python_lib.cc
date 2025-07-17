@@ -714,14 +714,15 @@ void calculate_CSSS2_value_with_gradient(const double * const area_size, const d
 	}
 
 
-extern "C" void calculate_CSSS2_value_with_gradient_ctypes(const double * const area_size, const double * const f1,  const double * const f2, const size_t number_of_points, const uint32_t * const * const data_pointer,  double * const CSSS_value, double * const CSSS_gradient)
+extern "C" void calculate_CSSS2_value_with_gradient_ctypes(const double * const area_size, const double * const f1,  const double * const f2, const size_t number_of_points, const uint32_t * const * const data_pointer,  double * const CSSS_value, double * const CSSS_gradient,  const uint8_t print_timing )
 	{
 	auto begin4 = std::chrono::high_resolution_clock::now();
 
 	calculate_CSSS2_value_with_gradient(area_size, f1,  f2, number_of_points, data_pointer,  CSSS_value, CSSS_gradient);
 
-	cout << "----- CSSS calculation " << std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin4).count() * 1e-9 << " s" << endl;
-
+	if (print_timing) {
+		cout << "----- CSSS calculation " << std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin4).count() * 1e-9 << " s" << endl;
+	}
  	}
 
 
