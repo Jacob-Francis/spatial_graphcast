@@ -18,9 +18,9 @@ import numpy as np
 
 class CustomCSSS(Function):
     @staticmethod
-    def load_binary_file(path_to_smoothing_data):
+    def load_binary_file(path_to_smoothing_data, radius=500*1000):
         smoothing_data_folder = bytes(path_to_smoothing_data, encoding='utf8')
-        return read_smoothing_data_from_binary_file(smoothing_data_folder, 500*1000, 7200)
+        return read_smoothing_data_from_binary_file(smoothing_data_folder, radius, 7200)
 
     @staticmethod
     def load_area_size(path_to_area_size_data):
