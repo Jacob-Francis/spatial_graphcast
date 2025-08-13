@@ -17,7 +17,7 @@ import numpy as np
 # ------------------------------------------------------------------------------------------------------------------------
 resolution_degrees = 3
 
-ln = np.arange(0,360.1,resolution_degrees)      # [0 4 8 ... 360]
+ln = np.arange(0,359.9,resolution_degrees)      # [0 4 8 ... 360]
 if resolution_degrees == 1:
     lt = np.arange(-89.5,89.6,resolution_degrees)   # [-90 -86 ... 90]
 elif resolution_degrees == 3:
@@ -41,17 +41,11 @@ lon = np.ascontiguousarray(lon, dtype = np.float64)
 lat = np.ascontiguousarray(lat, dtype = np.float64)
 area_size = np.ascontiguousarray(area_size, dtype = np.float64)
 
-print(lon)
-print('SUM', lon.sum())
-print('Shape', lon.shape)
-print('Shape', lon.shape)
-print('Shape', area_size.shape)
-
 # ------------------------------------------------------------------------------------------------------------------------
 # Generate the smoothing data for smoothing kernel radiuses of 100 and 200 km and write it to the disk
 # ------------------------------------------------------------------------------------------------------------------------
 
-smoothing_kernel_radius_in_metres = [500*1000]
+smoothing_kernel_radius_in_metres = [500*1000, 100*1000, 50*1000, 1000*1000, 5000*1000]
 
 # set the output folder for the smoothing data files
 smoothing_data_folder = bytes("smoothing_data/", encoding='utf8')
