@@ -40,6 +40,13 @@ class CustomCSSS(Function):
 
         # Compute loss and gradient in one call
         loss_val, grad_np = batch_calculate_CSSS2_value_with_gradient(y_np, target_np, area_np, binary_file)
+        
+        # This returns 1-F/G and grad, of this, but we actually want F/G and Grad for this
+        loss_val = - loss_val + 1
+        grad_np = - grad_np
+
+        # To check the opimiser is finding tthe mnimum so grad needs to be the positive value?
+
         # Stash computed gradient for use in backward
         ctx.grad_y = torch.from_numpy(grad_np).to(y.device).to(y.dtype).view(y.shape)
         ctx.save_for_backward(y, target)
