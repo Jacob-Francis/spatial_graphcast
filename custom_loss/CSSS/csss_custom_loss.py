@@ -18,9 +18,12 @@ import numpy as np
 
 class CustomCSSS(Function):
     @staticmethod
-    def load_binary_file(path_to_smoothing_data, radius=500*1000):
+    def load_binary_file(path_to_smoothing_data, radius=500*1000, method='kdtree'):
         smoothing_data_folder = bytes(path_to_smoothing_data, encoding='utf8')
-        return read_smoothing_data_from_binary_file(smoothing_data_folder, radius, 7200)
+        if method == 'kdtree':
+            return read_smoothing_data_for_the_kdtree_based_approach_from_binary_file_ctypes(smoothing_data_folder, radius)
+        elif method == 'overlap':
+            return read_smoothing_data_from_binary_file(smoothing_data_folder, radius, 7200)
 
     @staticmethod
     def load_area_size(path_to_area_size_data):
@@ -39,7 +42,9 @@ class CustomCSSS(Function):
         area_np = area_size.astype(np.float64)
 
         # Compute loss and gradient in one call
-        loss_val, grad_np = batch_calculate_CSSS2_value_with_gradient(y_np, target_np, area_np, binary_file)
+        # Value1 : True/target
+        # Value2 : Prediction/output
+        loss_val, grad_np = batch_calculate_CSSS2_value_with_gradient_kdtree(target_np, y_np, area_np, binary_file)
         
         # This returns 1-F/G and grad, of this, but we actually want F/G and Grad for this
         loss_val = - loss_val + 1

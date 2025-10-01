@@ -48,7 +48,7 @@ area_size = np.ascontiguousarray(area_size, dtype = np.float64)
 smoothing_kernel_radius_in_metres = [500*1000, 100*1000, 50*1000, 1000*1000, 5000*1000]
 
 # set the output folder for the smoothing data files
-smoothing_data_folder = bytes("smoothing_data/", encoding='utf8')
+smoothing_data_folder = bytes("smoothing_data_overlap/", encoding='utf8')
 
 # create the folder if it does not exist
 os.makedirs(smoothing_data_folder, exist_ok = True)
