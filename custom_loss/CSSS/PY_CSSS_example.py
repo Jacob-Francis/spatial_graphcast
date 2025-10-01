@@ -59,7 +59,7 @@ area_size = np.ascontiguousarray(area_size, dtype = np.float64)
 
 #smoothing_kernel_radius_in_metres = [100*1000, 200*1000, 500*1000, 1000*1000, 2000*1000]
 #smoothing_kernel_radius_in_metres = [1*1000, 100*1000, 200*1000, 500*1000, 1000*1000, 2000*1000]
-smoothing_kernel_radius_in_metres = [100*1000, 500*1000]
+smoothing_kernel_radius_in_metres = [1000*1000]
 
 # set the output folder for the smoothing data files
 smoothing_data_folder = bytes("smoothing_data/", encoding='utf8')
@@ -75,86 +75,88 @@ os.makedirs(smoothing_data_folder, exist_ok = True)
 # ------------------------------------------------------------------------------------------------------------------------
 
 # read the smoothing data from the disk into the memory
-smoothing_data_pointer = read_smoothing_data_from_binary_file(smoothing_data_folder, 500*1000, len(lat))
-
+smoothing_data_pointer = read_smoothing_data_from_binary_file(smoothing_data_folder, 50*1000, len(lat))
+# print(len(lat)
 # calculate the smoothed field
 values1_smoothed = smooth_field_using_overlap_detection(area_size, values1, smoothing_data_pointer)
 values2_smoothed = smooth_field_using_overlap_detection(area_size, values2, smoothing_data_pointer)
 
+# assert 0
 # -----------------------------------------------------------
 #            Single
 # -----------------------------------------------------------
 
-# [CSSS_value, CSSS_gradient] = calculate_CSSS2_value_with_gradient(values1, values2, area_size, smoothing_data_pointer)
+[CSSS_value, CSSS_gradient] = calculate_CSSS2_value_with_gradient(values1, values2, area_size, smoothing_data_pointer)
 
-# # free the smoothing data memory
-# free_smoothing_data_memory(smoothing_data_pointer, len(lat))
+print('GRadient check', CSSS_gradient)
+# free the smoothing data memory
+free_smoothing_data_memory(smoothing_data_pointer, len(lat))
 
-# print(CSSS_value)
+print(CSSS_value)
 
-# # Import matplotlib library 
-# import matplotlib
-# matplotlib.use("Qt5Agg")  # if you have a display server running
-# # import matplotlib.pyplot as plt
-# import matplotlib.pyplot
-# import matplotlib.ticker as mticker
-# # Import cartopy library 
-# import cartopy
+# Import matplotlib library 
+import matplotlib
+matplotlib.use("Qt5Agg")  # if you have a display server running
+# import matplotlib.pyplot as plt
+import matplotlib.pyplot
+import matplotlib.ticker as mticker
+# Import cartopy library 
+import cartopy
 
-# central_latitude = 0
-# central_longitude = 180
+central_latitude = 0
+central_longitude = 180
 
-# fig = matplotlib.pyplot.figure(figsize=(10, 10))
-# ax = fig.add_subplot(1, 1, 1, projection=cartopy.crs.Orthographic(central_longitude=central_longitude, central_latitude=central_latitude, globe=None))
-# ax.set_global()
-# matplotlib.pyplot.title("Original fields")
-# cmap_b = matplotlib.colors.LinearSegmentedColormap.from_list('rb_cmap',["white",(0.7, 0.7, 1.0), "blue"],512)
-# cmap_r = matplotlib.colors.LinearSegmentedColormap.from_list('rb_cmap',["white",(1.0, 0.7, 0.7), "red"],512)
-# norm = matplotlib.colors.LogNorm(vmin=1, vmax=100)
-# fax = cmap_b(norm(f1_netcdf))
-# fbx = cmap_r(norm(f2_netcdf))
-# fx = fax*fbx
-# img = matplotlib.pyplot.imshow(fx, transform=cartopy.crs.PlateCarree(), interpolation='nearest', origin='lower', extent=(0, 360, -90, 90))
-# ax.coastlines(resolution='110m', color='grey', linestyle='-', alpha=1)
-# gl = ax.gridlines()
-# gl.xlocator = mticker.FixedLocator(list(np.arange(-180,180,20)))
-# matplotlib.pyplot.savefig("aaa1.png", dpi=300, bbox_inches='tight')
-# matplotlib.pyplot.show()
-# matplotlib.pyplot.close()
-
-
-# fig = matplotlib.pyplot.figure(figsize=(10, 10))
-# ax = fig.add_subplot(1, 1, 1, projection=cartopy.crs.Orthographic(central_longitude=central_longitude, central_latitude=central_latitude, globe=None))
-# ax.set_global()
-# matplotlib.pyplot.title("Smoothed fields")
-# cmap_b = matplotlib.colors.LinearSegmentedColormap.from_list('rb_cmap',["white",(0.7, 0.7, 1.0), "blue"],512)
-# cmap_r = matplotlib.colors.LinearSegmentedColormap.from_list('rb_cmap',["white",(1.0, 0.7, 0.7), "red"],512)
-# norm = matplotlib.colors.LogNorm(vmin=1, vmax=100)
-# fax = cmap_b(norm(np.reshape(values1_smoothed,f1_netcdf.shape)))
-# fbx = cmap_r(norm(np.reshape(values2_smoothed,f1_netcdf.shape)))
-# fx = fax*fbx
-# img = matplotlib.pyplot.imshow(fx, transform=cartopy.crs.PlateCarree(), interpolation='nearest', origin='lower', extent=(0, 360, -90, 90))
-# ax.coastlines(resolution='110m', color='grey', linestyle='-', alpha=1)
-# gl = ax.gridlines()
-# gl.xlocator = mticker.FixedLocator(list(np.arange(-180,180,20)))
-# matplotlib.pyplot.savefig("aaa2.png", dpi=300, bbox_inches='tight')
-# matplotlib.pyplot.show()
-# matplotlib.pyplot.close()
+fig = matplotlib.pyplot.figure(figsize=(10, 10))
+ax = fig.add_subplot(1, 1, 1, projection=cartopy.crs.Orthographic(central_longitude=central_longitude, central_latitude=central_latitude, globe=None))
+ax.set_global()
+matplotlib.pyplot.title("Original fields")
+cmap_b = matplotlib.colors.LinearSegmentedColormap.from_list('rb_cmap',["white",(0.7, 0.7, 1.0), "blue"],512)
+cmap_r = matplotlib.colors.LinearSegmentedColormap.from_list('rb_cmap',["white",(1.0, 0.7, 0.7), "red"],512)
+norm = matplotlib.colors.LogNorm(vmin=1, vmax=100)
+fax = cmap_b(norm(f1_netcdf))
+fbx = cmap_r(norm(f2_netcdf))
+fx = fax*fbx
+img = matplotlib.pyplot.imshow(fx, transform=cartopy.crs.PlateCarree(), interpolation='nearest', origin='lower', extent=(0, 360, -90, 90))
+ax.coastlines(resolution='110m', color='grey', linestyle='-', alpha=1)
+gl = ax.gridlines()
+gl.xlocator = mticker.FixedLocator(list(np.arange(-180,180,20)))
+matplotlib.pyplot.savefig("aaa1.png", dpi=300, bbox_inches='tight')
+matplotlib.pyplot.show()
+matplotlib.pyplot.close()
 
 
-# fig = matplotlib.pyplot.figure(figsize=(10, 10))
-# ax = fig.add_subplot(1, 1, 1, projection=cartopy.crs.Orthographic(central_longitude=central_longitude, central_latitude=central_latitude, globe=None))
-# ax.set_global()
-# matplotlib.pyplot.title("CSSS gradient")
-# img = matplotlib.pyplot.imshow(np.reshape(CSSS_gradient,f1_netcdf.shape), transform=cartopy.crs.PlateCarree(), interpolation='nearest', origin='lower', extent=(0, 360, -90, 90),  vmax= np.max(np.abs(CSSS_gradient)), vmin=-np.max(np.abs(CSSS_gradient)), cmap ="bwr")
-# #cb = fig.colorbar(img, extend='both', shrink=0.5)
-# ax.coastlines(resolution='110m', color='grey', linestyle='-', alpha=1)
-# gl = ax.gridlines()
-# gl.xlocator = mticker.FixedLocator(list(np.arange(-180,180,20)))
-# matplotlib.pyplot.savefig("aaa3.png", dpi=300, bbox_inches='tight')
-# matplotlib.pyplot.show()
-# matplotlib.pyplot.close()
-# assert 0
+fig = matplotlib.pyplot.figure(figsize=(10, 10))
+ax = fig.add_subplot(1, 1, 1, projection=cartopy.crs.Orthographic(central_longitude=central_longitude, central_latitude=central_latitude, globe=None))
+ax.set_global()
+matplotlib.pyplot.title("Smoothed fields")
+cmap_b = matplotlib.colors.LinearSegmentedColormap.from_list('rb_cmap',["white",(0.7, 0.7, 1.0), "blue"],512)
+cmap_r = matplotlib.colors.LinearSegmentedColormap.from_list('rb_cmap',["white",(1.0, 0.7, 0.7), "red"],512)
+norm = matplotlib.colors.LogNorm(vmin=1, vmax=100)
+fax = cmap_b(norm(np.reshape(values1_smoothed,f1_netcdf.shape)))
+fbx = cmap_r(norm(np.reshape(values2_smoothed,f1_netcdf.shape)))
+fx = fax*fbx
+img = matplotlib.pyplot.imshow(fx, transform=cartopy.crs.PlateCarree(), interpolation='nearest', origin='lower', extent=(0, 360, -90, 90))
+ax.coastlines(resolution='110m', color='grey', linestyle='-', alpha=1)
+gl = ax.gridlines()
+gl.xlocator = mticker.FixedLocator(list(np.arange(-180,180,20)))
+matplotlib.pyplot.savefig("aaa2.png", dpi=300, bbox_inches='tight')
+matplotlib.pyplot.show()
+matplotlib.pyplot.close()
+
+
+fig = matplotlib.pyplot.figure(figsize=(10, 10))
+ax = fig.add_subplot(1, 1, 1, projection=cartopy.crs.Orthographic(central_longitude=central_longitude, central_latitude=central_latitude, globe=None))
+ax.set_global()
+matplotlib.pyplot.title("CSSS gradient")
+img = matplotlib.pyplot.imshow(np.reshape(CSSS_gradient,f1_netcdf.shape), transform=cartopy.crs.PlateCarree(), interpolation='nearest', origin='lower', extent=(0, 360, -90, 90),  vmax= np.max(np.abs(CSSS_gradient)), vmin=-np.max(np.abs(CSSS_gradient)), cmap ="bwr")
+#cb = fig.colorbar(img, extend='both', shrink=0.5)
+ax.coastlines(resolution='110m', color='grey', linestyle='-', alpha=1)
+gl = ax.gridlines()
+gl.xlocator = mticker.FixedLocator(list(np.arange(-180,180,20)))
+matplotlib.pyplot.savefig("aaa3.png", dpi=300, bbox_inches='tight')
+matplotlib.pyplot.show()
+matplotlib.pyplot.close()
+assert 0
 
 # -----------------------------------------------------------
 #            Batch
@@ -172,7 +174,7 @@ print('Shape', bvalues1.shape, bvalues2.shape, area_size.shape)
 print(bCSSS_value.shape, bCSSS_gradient.shape)
 print('Batched CSSS values', bCSSS_value)
 
-assert 0 
+# assert 0 
 
 # free the smoothing data memory
 free_smoothing_data_memory(smoothing_data_pointer, len(lat))
@@ -189,24 +191,23 @@ import cartopy
 central_latitude = 0
 central_longitude = 180
 
-# fig = matplotlib.pyplot.figure(figsize=(10, 10))
-# ax = fig.add_subplot(1, 1, 1, projection=cartopy.crs.Orthographic(central_longitude=central_longitude, central_latitude=central_latitude, globe=None))
-# ax.set_global()
-# matplotlib.pyplot.title("Original fields")
-# cmap_b = matplotlib.colors.LinearSegmentedColormap.from_list('rb_cmap',["white",(0.7, 0.7, 1.0), "blue"],512)
-# cmap_r = matplotlib.colors.LinearSegmentedColormap.from_list('rb_cmap',["white",(1.0, 0.7, 0.7), "red"],512)
-# norm = matplotlib.colors.LogNorm(vmin=1, vmax=100)
-# fax = cmap_b(norm(f1_netcdf))
-# fbx = cmap_r(norm(f2_netcdf))
-# fx = fax*fbx
-# img = matplotlib.pyplot.imshow(fx, transform=cartopy.crs.PlateCarree(), interpolation='nearest', origin='lower', extent=(0, 360, -90, 90))
-# ax.coastlines(resolution='110m', color='grey', linestyle='-', alpha=1)
-# gl = ax.gridlines()
-# gl.xlocator = mticker.FixedLocator(list(np.arange(-180,180,20)))
-# matplotlib.pyplot.savefig("baaa1.png", dpi=300, bbox_inches='tight')
-# matplotlib.pyplot.show()
-# matplotlib.pyplot.close()
-
+fig = matplotlib.pyplot.figure(figsize=(10, 10))
+ax = fig.add_subplot(1, 1, 1, projection=cartopy.crs.Orthographic(central_longitude=central_longitude, central_latitude=central_latitude, globe=None))
+ax.set_global()
+matplotlib.pyplot.title("Original fields")
+cmap_b = matplotlib.colors.LinearSegmentedColormap.from_list('rb_cmap',["white",(0.7, 0.7, 1.0), "blue"],512)
+cmap_r = matplotlib.colors.LinearSegmentedColormap.from_list('rb_cmap',["white",(1.0, 0.7, 0.7), "red"],512)
+norm = matplotlib.colors.LogNorm(vmin=1, vmax=100)
+fax = cmap_b(norm(f1_netcdf))
+fbx = cmap_r(norm(f2_netcdf))
+fx = fax*fbx
+img = matplotlib.pyplot.imshow(fx, transform=cartopy.crs.PlateCarree(), interpolation='nearest', origin='lower', extent=(0, 360, -90, 90))
+ax.coastlines(resolution='110m', color='grey', linestyle='-', alpha=1)
+gl = ax.gridlines()
+gl.xlocator = mticker.FixedLocator(list(np.arange(-180,180,20)))
+matplotlib.pyplot.savefig("oringinal.png", dpi=300, bbox_inches='tight')
+matplotlib.pyplot.show()
+matplotlib.pyplot.close()
 
 # fig = matplotlib.pyplot.figure(figsize=(10, 10))
 # ax = fig.add_subplot(1, 1, 1, projection=cartopy.crs.Orthographic(central_longitude=central_longitude, central_latitude=central_latitude, globe=None))
@@ -222,20 +223,80 @@ central_longitude = 180
 # ax.coastlines(resolution='110m', color='grey', linestyle='-', alpha=1)
 # gl = ax.gridlines()
 # gl.xlocator = mticker.FixedLocator(list(np.arange(-180,180,20)))
-# matplotlib.pyplot.savefig("aaa2.png", dpi=300, bbox_inches='tight')
+# matplotlib.pyplot.savefig("smoothed.png", dpi=300, bbox_inches='tight')
 # matplotlib.pyplot.show()
 # matplotlib.pyplot.close()
 
-for b in range(len(bCSSS_value)):
+
+fig = matplotlib.pyplot.figure(figsize=(10, 10))
+ax = fig.add_subplot(
+    1, 1, 1,
+    projection=cartopy.crs.Orthographic(
+        central_longitude=central_longitude,
+        central_latitude=central_latitude,
+        globe=None
+    )
+)
+ax.set_global()
+matplotlib.pyplot.title("Smoothed fields")
+
+# Define colormaps
+cmap_b = matplotlib.colors.LinearSegmentedColormap.from_list(
+    'rb_cmap_b', ["white", (0.7, 0.7, 1.0), "blue"], 512
+)
+cmap_r = matplotlib.colors.LinearSegmentedColormap.from_list(
+    'rb_cmap_r', ["white", (1.0, 0.7, 0.7), "red"], 512
+)
+norm = matplotlib.colors.LogNorm(vmin=1, vmax=100)
+
+# Compute values
+val1 = np.reshape(values1_smoothed, f1_netcdf.shape)
+val2 = np.reshape(values2_smoothed, f1_netcdf.shape)
+
+fax = cmap_b(norm(val1))
+fbx = cmap_r(norm(val2))
+fx = fax * fbx  # composite
+
+# Plot composite
+img = ax.imshow(
+    fx,
+    transform=cartopy.crs.PlateCarree(),
+    interpolation='nearest',
+    origin='lower',
+    extent=(0, 360, -90, 90),
+)
+
+# 🔹 Add colorbars separately using "dummy" images
+sm1 = matplotlib.cm.ScalarMappable(cmap=cmap_b, norm=norm)
+sm1.set_array([])
+cbar1 = fig.colorbar(sm1, ax=ax, orientation="horizontal", fraction=0.046, pad=0.04)
+cbar1.set_label("Values1 (blue scale)")
+
+sm2 = matplotlib.cm.ScalarMappable(cmap=cmap_r, norm=norm)
+sm2.set_array([])
+cbar2 = fig.colorbar(sm2, ax=ax, orientation="horizontal", fraction=0.046, pad=0.15)
+cbar2.set_label("Values2 (red scale)")
+
+# Coastlines and grid
+ax.coastlines(resolution='110m', color='grey', linestyle='-', alpha=1)
+gl = ax.gridlines()
+gl.xlocator = mticker.FixedLocator(list(np.arange(-180, 180, 20)))
+
+matplotlib.pyplot.savefig("smoothed.png", dpi=300, bbox_inches='tight')
+matplotlib.pyplot.show()
+matplotlib.pyplot.close()
+
+
+for b in range(1):
     fig = matplotlib.pyplot.figure(figsize=(10, 10))
     ax = fig.add_subplot(1, 1, 1, projection=cartopy.crs.Orthographic(central_longitude=central_longitude, central_latitude=central_latitude, globe=None))
     ax.set_global()
     matplotlib.pyplot.title("CSSS gradient")
-    img = matplotlib.pyplot.imshow(np.reshape(bCSSS_gradient[:, b],f1_netcdf.shape), transform=cartopy.crs.PlateCarree(), interpolation='nearest', origin='lower', extent=(0, 360, -90, 90),  vmax= np.max(np.abs(bCSSS_gradient[:, b])), vmin=-np.max(np.abs(bCSSS_gradient[:, b])), cmap ="bwr")
-    #cb = fig.colorbar(img, extend='both', shrink=0.5)
+    img = matplotlib.pyplot.imshow(np.reshape(bCSSS_gradient[b, :],f1_netcdf.shape), transform=cartopy.crs.PlateCarree(), interpolation='nearest', origin='lower', extent=(0, 360, -90, 90),  vmax= np.max(np.abs(bCSSS_gradient[b, :])), vmin=-np.max(np.abs(bCSSS_gradient[b, :])), cmap ="bwr")
+    cb = fig.colorbar(img, extend='both', shrink=0.5)
     ax.coastlines(resolution='110m', color='grey', linestyle='-', alpha=1)
     gl = ax.gridlines()
     gl.xlocator = mticker.FixedLocator(list(np.arange(-180,180,20)))
-    matplotlib.pyplot.savefig(f"baaa{b}.png", dpi=300, bbox_inches='tight')
+    matplotlib.pyplot.savefig(f"grad{b}.png", dpi=300, bbox_inches='tight')
     matplotlib.pyplot.show()
     matplotlib.pyplot.close()
